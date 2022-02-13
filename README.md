@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	organisationsnummer.Valid("198507099805")
+	organisationsnummer.Valid("202100-5489")
 	//=> true
 }
 ```
