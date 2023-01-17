@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestValidOrganisationsnummer(t *testing.T) {
-	var numbers = []string{"556016-0680", "556103-4249", "5561034249", "165561034249"}
+	var numbers = []string{"556016-0680", "556103-4249", "5561034249", "165561034249", "559244-0001"}
 
 	for _, n := range numbers {
 		assert.True(t, Valid(n))
@@ -33,6 +33,7 @@ func TestValidOrganisationsnummerFormatShort(t *testing.T) {
 		"556016-0680": "5560160680",
 		"556103-4249": "5561034249",
 		"5561034249":  "5561034249",
+		"559244-0001": "5592440001",
 	}
 
 	for k, v := range numbers {
@@ -46,6 +47,7 @@ func TestValidOrganisationsnummerFormatLong(t *testing.T) {
 		"5560160680":  "556016-0680",
 		"5561034249":  "556103-4249",
 		"556103-4249": "556103-4249",
+		"559244-0001": "559244-0001",
 	}
 
 	for k, v := range numbers {
@@ -59,6 +61,7 @@ func TestValidOrganisationsnummerType(t *testing.T) {
 		"5560160680":  "Aktiebolag",
 		"5561034249":  "Aktiebolag",
 		"556103-4249": "Aktiebolag",
+		"559244-0001": "Aktiebolag",
 	}
 
 	for k, v := range numbers {
