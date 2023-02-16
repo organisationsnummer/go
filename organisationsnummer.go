@@ -130,6 +130,8 @@ func (o *Organisationsnummer) parse(input string) error {
 		}
 
 		o.number = string(getCleanNumber(input))
+	} else {
+		return err
 	}
 
 	return nil
