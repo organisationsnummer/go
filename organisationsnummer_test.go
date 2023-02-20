@@ -21,7 +21,7 @@ func TestValidOrganisationsnummer(t *testing.T) {
 	}
 }
 func TestInvalidOrganisationsnummer(t *testing.T) {
-	var numbers = []string{"556016-0681", "556103-4250", "5561034250", "165561034250"}
+	var numbers = []string{"556016-0681", "556103-4250", "5561034250", "165561034250", "asdasdasdas"}
 
 	for _, n := range numbers {
 		assert.False(t, Valid(n))
