@@ -1,3 +1,6 @@
+# github.com/frozzare/go v1.0.0
+## explicit
+github.com/frozzare/go/http2
 # github.com/frozzare/go-assert v1.1.0
 ## explicit
 github.com/frozzare/go-assert

@@ -105,6 +105,7 @@ func (o *Organisationsnummer) parse(input string) error {
 	if err == nil {
 		o.personnummer = p
 		o.number = string(number)
+		return nil
 	} else if len(number) == 12 {
 		// May only be prefixed with 16.
 		if charsToDigit(number[0:2]) != 16 {
@@ -129,7 +130,7 @@ func (o *Organisationsnummer) parse(input string) error {
 			return errInvalidSecurityNumber
 		}
 
-		o.number = string(getCleanNumber(input))
+		o.number = string(number)
 	} else {
 		return err
 	}
@@ -183,7 +184,7 @@ func (o *Organisationsnummer) String() string {
 }
 
 // Get vat number for a organization number.
-func (o *Organisationsnummer) vatNumber() string {
+func (o *Organisationsnummer) VatNumber() string {
 	return fmt.Sprintf("SE%s01", o.Format(false))
 }
 
