@@ -189,7 +189,7 @@ func (o *Organisationsnummer) String() string {
 
 // Get vat number for a organization number.
 //
-// Deprecated: This function was named wrongly, use "VatNumber" instead.
+// Deprecated: vatNumber function was named wrongly, use "VatNumber" instead.
 func (o *Organisationsnummer) vatNumber() string {
 	return o.VatNumber()
 }
