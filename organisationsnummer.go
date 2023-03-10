@@ -188,6 +188,13 @@ func (o *Organisationsnummer) String() string {
 }
 
 // Get vat number for a organization number.
+//
+// Deprecated: This function was named wrongly, use "VatNumber" instead.
+func (o *Organisationsnummer) vatNumber() string {
+	return o.VatNumber()
+}
+
+// Get vat number for a organization number.
 func (o *Organisationsnummer) VatNumber() string {
 	return fmt.Sprintf("SE%s01", o.Format(false))
 }
