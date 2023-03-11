@@ -1,94 +1,114 @@
 package organisationsnummer
 
 import (
+	"log"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/frozzare/go-assert"
+	"github.com/frozzare/go/http2"
 )
 
+type TestListItem struct {
+	LongFormat  string `json:"long_format"`
+	ShortFormat string `json:"short_format"`
+	Valid       bool   `json:"valid"`
+	Type        string `json:"type"`
+	Input       string `json:"input"`
+	VatNumber   string `json:"vat_number"`
+}
+
+var testList []*TestListItem
+
 func TestMain(m *testing.M) {
+	if err := http2.GetJSON("https://raw.githubusercontent.com/organisationsnummer/meta/main/testdata/list.json", &testList); err != nil {
+		log.Fatal(err)
+	}
+
 	code := m.Run()
 	os.Exit(code)
 }
 
 func TestValidOrganisationsnummer(t *testing.T) {
-	var numbers = []string{"556016-0680", "556103-4249", "5561034249", "165561034249", "559244-0001"}
+	for _, item := range testList {
+		if !item.Valid {
+			continue
+		}
 
-	for _, n := range numbers {
-		assert.True(t, Valid(n))
+		assert.True(t, Valid(item.Input))
 	}
 }
 func TestInvalidOrganisationsnummer(t *testing.T) {
-	var numbers = []string{"556016-0681", "556103-4250", "5561034250", "165561034250", "asdasdasdas"}
+	for _, item := range testList {
+		if item.Valid {
+			continue
+		}
 
-	for _, n := range numbers {
-		assert.False(t, Valid(n))
+		assert.False(t, Valid(item.Input))
 	}
 }
 
 func TestValidOrganisationsnummerFormatShort(t *testing.T) {
-	var numbers = map[string]string{
-		"556016-0680": "5560160680",
-		"556103-4249": "5561034249",
-		"5561034249":  "5561034249",
-		"559244-0001": "5592440001",
-	}
+	for _, item := range testList {
+		if !item.Valid {
+			continue
+		}
 
-	for k, v := range numbers {
-		o, _ := Parse(k)
-		assert.Equal(t, o.Format(false), v)
+		o, _ := Parse(item.Input)
+		assert.Equal(t, o.Format(false), item.ShortFormat)
 	}
 }
 
 func TestValidOrganisationsnummerFormatLong(t *testing.T) {
-	var numbers = map[string]string{
-		"5560160680":  "556016-0680",
-		"5561034249":  "556103-4249",
-		"556103-4249": "556103-4249",
-		"559244-0001": "559244-0001",
-	}
+	for _, item := range testList {
+		if !item.Valid {
+			continue
+		}
 
-	for k, v := range numbers {
-		o, _ := Parse(k)
-		assert.Equal(t, o.Format(true), v)
+		o, _ := Parse(item.Input)
+		assert.Equal(t, o.Format(true), item.LongFormat)
 	}
 }
 
 func TestValidOrganisationsnummerType(t *testing.T) {
-	var numbers = map[string]string{
-		"5560160680":  "Aktiebolag",
-		"5561034249":  "Aktiebolag",
-		"556103-4249": "Aktiebolag",
-		"559244-0001": "Aktiebolag",
-	}
+	for _, item := range testList {
+		if !item.Valid {
+			continue
+		}
 
-	for k, v := range numbers {
-		o, _ := Parse(k)
-		assert.Equal(t, o.GetType(), v)
+		o, _ := Parse(item.Input)
+		assert.Equal(t, o.GetType(), item.Type)
+	}
+}
+
+func TestValidOrganisationsnummerVatNumber(t *testing.T) {
+	for _, item := range testList {
+		if !item.Valid {
+			continue
+		}
+
+		o, _ := Parse(item.Input)
+		assert.Equal(t, o.VatNumber(), item.VatNumber)
 	}
 }
 
 func TestValidPersonnummer(t *testing.T) {
-	var _type = "Enskild firma"
-	var number = "121212121212"
+	for _, item := range testList {
+		if !item.Valid {
+			continue
+		}
 
-	org, _ := Parse(number)
-	assert.Equal(t, org.GetType(), _type)
-	assert.Equal(t, org.String(), _type)
-	assert.True(t, org.IsPersonnummer())
-	assert.Equal(t, org.Personnummer().FullYear, "1212")
-}
+		if item.Type != "Enskild firma" {
+			continue
+		}
 
-func TestValidPersonnummerFormat(t *testing.T) {
-	var numbers = map[string]string{
-		"121212121212":  "1212121212",
-		"12121212-1212": "121212-1212",
-	}
-
-	for k, v := range numbers {
-		o, _ := Parse(k)
-		assert.Equal(t, o.Format(strings.Contains(k, "-")), v)
+		assert.True(t, Valid(item.LongFormat))
+		org, _ := Parse(item.Input)
+		assert.Equal(t, org.GetType(), item.Type)
+		assert.Equal(t, org.String(), item.Type)
+		assert.True(t, org.IsPersonnummer())
+		assert.Equal(t, org.VatNumber(), item.VatNumber)
+		assert.Equal(t, org.Format(true), item.LongFormat)
+		assert.Equal(t, org.Format(false), item.ShortFormat)
 	}
 }

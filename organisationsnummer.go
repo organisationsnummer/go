@@ -8,10 +8,10 @@ import (
 )
 
 var (
-	errInvalidSecurityNumber = errors.New("Invalid Swedish organization number")
-	rule3                    = [...]int{0, 2, 4, 6, 8, 1, 3, 5, 7, 9}
-	unkown                   = "Okänt"
-	types                    = map[byte]string{
+	ErrInvalidOrganizationNumber = errors.New("Invalid Swedish organization number")
+	rule3                        = [...]int{0, 2, 4, 6, 8, 1, 3, 5, 7, 9}
+	unknown                      = "Okänt"
+	types                        = map[byte]string{
 		'1': "Dödsbon",
 		'2': "Stat, landsting, kommun eller församling",
 		'3': "Utländska företag som bedriver näringsverksamhet eller äger fastigheter i Sverige",
@@ -99,16 +99,21 @@ func New(input string) (*Organisationsnummer, error) {
 
 // parse Swedish organization numbers and set struct properpties or return a error.
 func (o *Organisationsnummer) parse(input string) error {
+	if len(input) < 10 || len(input) > 13 {
+		return ErrInvalidOrganizationNumber
+	}
+
 	number := getCleanNumber(input)
 	p, err := personnummer.Parse(input)
 
 	if err == nil {
 		o.personnummer = p
 		o.number = string(number)
+		return nil
 	} else if len(number) == 12 {
 		// May only be prefixed with 16.
 		if charsToDigit(number[0:2]) != 16 {
-			return errInvalidSecurityNumber
+			return ErrInvalidOrganizationNumber
 		}
 
 		number = number[2:]
@@ -117,19 +122,19 @@ func (o *Organisationsnummer) parse(input string) error {
 	if len(number) == 10 {
 		// Third digit bust be more than 20.
 		if charsToDigit(number[2:4]) < 20 {
-			return errInvalidSecurityNumber
+			return ErrInvalidOrganizationNumber
 		}
 
 		// May not start with leading 0.
 		if charsToDigit(number[0:2]) < 10 {
-			return errInvalidSecurityNumber
+			return ErrInvalidOrganizationNumber
 		}
 
 		if !luhn(number) {
-			return errInvalidSecurityNumber
+			return ErrInvalidOrganizationNumber
 		}
 
-		o.number = string(getCleanNumber(input))
+		o.number = string(number)
 	} else {
 		return err
 	}
@@ -174,7 +179,7 @@ func (o *Organisationsnummer) GetType() string {
 		return types[o.number[0]]
 	}
 
-	return unkown
+	return unknown
 }
 
 // Get the organization type.
@@ -183,7 +188,7 @@ func (o *Organisationsnummer) String() string {
 }
 
 // Get vat number for a organization number.
-func (o *Organisationsnummer) vatNumber() string {
+func (o *Organisationsnummer) VatNumber() string {
 	return fmt.Sprintf("SE%s01", o.Format(false))
 }
 
