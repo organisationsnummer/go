@@ -1,0 +1,4 @@
+name: "Go"
+maintainer: "@frozzare"
+spec: 1.1
+workflow: "go.yml"
