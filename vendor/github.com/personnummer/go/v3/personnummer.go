@@ -29,8 +29,9 @@ var (
 		11: 30,
 		12: 31,
 	}
-	now   = time.Now
-	rule3 = [...]int{0, 2, 4, 6, 8, 1, 3, 5, 7, 9}
+	now            = time.Now
+	rule3          = [...]int{0, 2, 4, 6, 8, 1, 3, 5, 7, 9}
+	interimLetters = []rune("TRSUWXJKLMN")
 )
 
 // charsToDigit converts char bytes to a digit
@@ -48,6 +49,15 @@ func charsToDigit(chars []byte) int {
 	return r
 }
 
+func runeInSlice(a rune, list []rune) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 // getCleanNumber will return clean numbers.
 func getCleanNumber(in string) []byte {
 	cleanNumber := make([]byte, 0, len(in))
@@ -60,11 +70,13 @@ func getCleanNumber(in string) []byte {
 			continue
 		}
 
-		if c > '9' {
-			return nil
-		}
-		if c < '0' {
-			return nil
+		if !runeInSlice(c, interimLetters) {
+			if c > '9' {
+				return nil
+			}
+			if c < '0' {
+				return nil
+			}
 		}
 
 		cleanNumber = append(cleanNumber, byte(c))
@@ -162,13 +174,20 @@ type Personnummer struct {
 
 // Options represents the personnummer options.
 type Options struct {
+	AllowInterimNumber        bool
+	DisableCoordinationNumber bool
 }
 
 // New parse a Swedish personal identity numbers and returns a new struct or a error.
 func New(pin string, options ...*Options) (*Personnummer, error) {
 	p := &Personnummer{}
+	o := &Options{}
 
-	if err := p.parse(pin); err != nil {
+	if len(options) > 0 {
+		o = options[0]
+	}
+
+	if err := p.parse(pin, o); err != nil {
 		return nil, err
 	}
 
@@ -176,7 +195,7 @@ func New(pin string, options ...*Options) (*Personnummer, error) {
 }
 
 // parse Swedish personal identity numbers and set struct properpties or return a error.
-func (p *Personnummer) parse(pin string) error {
+func (p *Personnummer) parse(pin string, options *Options) error {
 	var century, year, num, check string
 
 	if pin == "" {
@@ -266,12 +285,25 @@ func (p *Personnummer) parse(pin string) error {
 		return errInvalidSecurityNumber
 	}
 
+	if p.IsCoordinationNumber() && options.DisableCoordinationNumber {
+		return errInvalidSecurityNumber
+	}
+
+	if p.IsInterimNumber() && !options.AllowInterimNumber {
+		return errInvalidSecurityNumber
+	}
+
 	return nil
 }
 
 // Valid will validate Swedish personal identity numbers.
 func (p *Personnummer) valid() bool {
-	pin := fmt.Sprintf("%s%s%s%s%s%s", p.Century, p.Year, p.Month, p.Day, p.Num, p.Check)
+	num := p.Num
+	if p.IsInterimNumber() {
+		num = "1" + p.Num[1:]
+	}
+
+	pin := fmt.Sprintf("%s%s%s%s%s%s", p.Century, p.Year, p.Month, p.Day, num, p.Check)
 
 	bytes := []byte(pin)
 	if !luhn(bytes[2:]) {
@@ -293,8 +325,8 @@ func (p *Personnummer) Format(longFormat ...bool) (string, error) {
 	return fmt.Sprintf("%s%s%s%s%s%s", p.Year, p.Month, p.Day, p.Sep, p.Num, p.Check), nil
 }
 
-// GetAge returns the age from a Swedish personal identity number.
-func (p *Personnummer) GetAge() int {
+// GetDate returns the date from a Swedish personal identity number.
+func (p *Personnummer) GetDate() time.Time {
 	ageDay := charsToDigit([]byte(p.Day))
 
 	if p.IsCoordinationNumber() {
@@ -304,7 +336,12 @@ func (p *Personnummer) GetAge() int {
 	fullYear := charsToDigit([]byte(p.FullYear))
 	month := charsToDigit([]byte(p.Month))
 
-	t := time.Date(fullYear, time.Month(month), ageDay, 0, 0, 0, 0, time.UTC)
+	return time.Date(fullYear, time.Month(month), ageDay, 0, 0, 0, 0, time.UTC)
+}
+
+// GetAge returns the age from a Swedish personal identity number.
+func (p *Personnummer) GetAge() int {
+	t := p.GetDate()
 	a := math.Floor(float64(now().Sub(t)/1e6) / 3.15576e+10)
 
 	return int(a)
@@ -321,6 +358,12 @@ func (p *Personnummer) IsCoordinationNumber() bool {
 		str += fmt.Sprintf("%d", day)
 	}
 	return validateTime([]byte(str))
+}
+
+// IsInterimNumber determine if a Swedish personal identity number is a interim number or not.
+// Returns true if it's a interim number.
+func (p *Personnummer) IsInterimNumber() bool {
+	return runeInSlice(rune(p.Num[0]), interimLetters)
 }
 
 // IsFemale checks if a Swedish personal identity number is for a female.

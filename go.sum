@@ -4,3 +4,5 @@ github.com/frozzare/go-assert v1.1.0 h1:JaWK+Q2bFyVyE8dpUNtqh0P9CFAwtQhTiKZiwJ8R
 github.com/frozzare/go-assert v1.1.0/go.mod h1:qaUtLVkASIEqsHEn8xhGKLh+24s1y07Y88Z5mNyHgWU=
 github.com/personnummer/go/v3 v3.0.2 h1:tBm+nBmD6NhfazoMV9oUDxXZHMghYhKEmWsnPcJsABQ=
 github.com/personnummer/go/v3 v3.0.2/go.mod h1:VGi8cG/kgQ9c4p8qCTRWxV1IAWUpAf2VF6137TL/Oq0=
+github.com/personnummer/go/v3 v3.1.0 h1:Bqq6CV9aBrsz+g84Gbyge6rCmpr2uKK//opoJz+3d3M=
+github.com/personnummer/go/v3 v3.1.0/go.mod h1:piLpoILajZ4xgNA53uzWdTb6VNgYPs4uWdhuTjdHuEM=
