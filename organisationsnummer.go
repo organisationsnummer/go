@@ -158,8 +158,13 @@ func (o *Organisationsnummer) Format(separator ...bool) string {
 	var number = o.number
 
 	if o.IsPersonnummer() {
+		if len(separator) > 0 && separator[0] {
+			f, _ := o.personnummer.Format(false)
+			return f
+		}
+
 		f, _ := o.personnummer.Format(true)
-		number = f[2:]
+		return f[2:]
 	}
 
 	if len(separator) > 0 && separator[0] {
