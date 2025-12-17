@@ -20,6 +20,6 @@ jobs:
         go-version: 'stable'
         check-latest: true
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Test
       run: go test ./...
