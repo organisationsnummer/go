@@ -1,9 +1,3 @@
-# github.com/frozzare/go v1.0.0
-## explicit
-github.com/frozzare/go/http2
-# github.com/frozzare/go-assert v1.1.0
-## explicit
-github.com/frozzare/go-assert
 # github.com/personnummer/go/v3 v3.1.2
 ## explicit; go 1.20
 github.com/personnummer/go/v3
