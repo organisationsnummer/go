@@ -1,12 +1,12 @@
 package organisationsnummer
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"testing"
-
-	"github.com/frozzare/go-assert"
-	"github.com/frozzare/go/http2"
 )
 
 type TestListItem struct {
@@ -18,10 +18,29 @@ type TestListItem struct {
 	VatNumber   string `json:"vat_number"`
 }
 
+func getJSON(url string, v any) error {
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("GET %s: %s", url, res.Status)
+	}
+	return json.NewDecoder(res.Body).Decode(v)
+}
+
+func assertEqual[T comparable](t *testing.T, expected, actual T) {
+	t.Helper()
+	if expected != actual {
+		t.Errorf("expected %v, got %v", expected, actual)
+	}
+}
+
 var testList []*TestListItem
 
 func TestMain(m *testing.M) {
-	if err := http2.GetJSON("https://raw.githubusercontent.com/organisationsnummer/meta/main/testdata/list.json", &testList); err != nil {
+	if err := getJSON("https://raw.githubusercontent.com/organisationsnummer/meta/main/testdata/list.json", &testList); err != nil {
 		log.Fatal(err)
 	}
 
@@ -35,7 +54,7 @@ func TestValidOrganisationsnummer(t *testing.T) {
 			continue
 		}
 
-		assert.True(t, Valid(item.Input))
+		assertEqual(t, true, Valid(item.Input))
 	}
 }
 func TestInvalidOrganisationsnummer(t *testing.T) {
@@ -44,7 +63,7 @@ func TestInvalidOrganisationsnummer(t *testing.T) {
 			continue
 		}
 
-		assert.False(t, Valid(item.Input))
+		assertEqual(t, false, Valid(item.Input))
 	}
 }
 
@@ -55,7 +74,7 @@ func TestValidOrganisationsnummerFormatShort(t *testing.T) {
 		}
 
 		o, _ := Parse(item.Input)
-		assert.Equal(t, o.Format(false), item.ShortFormat)
+		assertEqual(t, o.Format(false), item.ShortFormat)
 	}
 }
 
@@ -66,7 +85,7 @@ func TestValidOrganisationsnummerFormatLong(t *testing.T) {
 		}
 
 		o, _ := Parse(item.Input)
-		assert.Equal(t, o.Format(true), item.LongFormat)
+		assertEqual(t, o.Format(true), item.LongFormat)
 	}
 }
 
@@ -77,7 +96,7 @@ func TestValidOrganisationsnummerType(t *testing.T) {
 		}
 
 		o, _ := Parse(item.Input)
-		assert.Equal(t, o.GetType(), item.Type)
+		assertEqual(t, o.GetType(), item.Type)
 	}
 }
 
@@ -88,7 +107,7 @@ func TestValidOrganisationsnummerVatNumber(t *testing.T) {
 		}
 
 		o, _ := Parse(item.Input)
-		assert.Equal(t, o.VatNumber(), item.VatNumber)
+		assertEqual(t, o.VatNumber(), item.VatNumber)
 	}
 }
 
@@ -102,13 +121,13 @@ func TestValidPersonnummer(t *testing.T) {
 			continue
 		}
 
-		assert.True(t, Valid(item.LongFormat))
+		assertEqual(t, true, Valid(item.LongFormat))
 		org, _ := Parse(item.Input)
-		assert.Equal(t, org.GetType(), item.Type)
-		assert.Equal(t, org.String(), item.Type)
-		assert.True(t, org.IsPersonnummer())
-		assert.Equal(t, org.VatNumber(), item.VatNumber)
-		assert.Equal(t, org.Format(true), item.LongFormat)
-		assert.Equal(t, org.Format(false), item.ShortFormat)
+		assertEqual(t, org.GetType(), item.Type)
+		assertEqual(t, org.String(), item.Type)
+		assertEqual(t, true, org.IsPersonnummer())
+		assertEqual(t, org.VatNumber(), item.VatNumber)
+		assertEqual(t, org.Format(true), item.LongFormat)
+		assertEqual(t, org.Format(false), item.ShortFormat)
 	}
 }
