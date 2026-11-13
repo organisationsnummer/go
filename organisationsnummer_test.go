@@ -40,7 +40,7 @@ func assertEqual[T comparable](t *testing.T, expected, actual T) {
 var testList []*TestListItem
 
 func TestMain(m *testing.M) {
-	if err := getJSON("https://raw.githubusercontent.com/organisationsnummer/meta/main/testdata/list.json", &testList); err != nil {
+	if err := getJSON("https://raw.githubusercontent.com/organisationsnummer/meta/HEAD/testdata/list.json", &testList); err != nil {
 		log.Fatal(err)
 	}
 
